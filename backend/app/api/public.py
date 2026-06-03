@@ -16,7 +16,7 @@ from app.services.briefs import build_brief_prompt
 from app.services.channel_service import create_channel
 from app.services.collector import collect_posts
 from app.services.scheduler import sync_scheduler
-from app.services.shirt_generator import get_shirt_of_day_payload
+from app.services.shirt_of_day import get_shirt_of_day_payload
 from app.services.trend_service import get_trend_detail, list_posts_data, list_trends as list_trends_service
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -106,7 +106,10 @@ def create_brief(entity_name: str, db: Session = Depends(get_db)) -> BriefRespon
 
 @router.get("/shirt-of-day", response_model=ShirtOfDayResponse)
 def get_shirt_of_day(db: Session = Depends(get_db)) -> ShirtOfDayResponse:
-    return get_shirt_of_day_payload(db)
+    try:
+        return get_shirt_of_day_payload(db)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="No trends available") from exc
 
 
 @router.get("/settings", response_model=SettingsRead)

@@ -95,21 +95,13 @@ type CollectionResult = {
   warnings: string[];
 };
 
-type ShirtDesign = {
-  id: number;
+type ShirtOfDay = {
   trend_entity: string;
   trend_entity_type: string;
   trend_score: number;
   trend_growth_7d: number | null;
   brief_prompt: string;
-  description: string;
-  image_url: string;
-  created_at: string;
-};
-
-type ShirtOfDay = {
-  current: ShirtDesign | null;
-  history: ShirtDesign[];
+  trend_url: string;
 };
 
 type Route =
@@ -187,7 +179,6 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [briefPrompt, setBriefPrompt] = useState<string | null>(null);
-  const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const onPopState = () => setRoute(parseRoute(window.location.pathname));
@@ -424,61 +415,25 @@ function App() {
                   <h2>Футболка дня</h2>
                 </div>
               </div>
-              {shirtOfDay?.current ? (
-                <>
-                  <article className="shirt-hero">
-                    <button className="image-button" onClick={() => setActiveImageUrl(shirtOfDay.current!.image_url)}>
-                      <img src={shirtOfDay.current.image_url} alt={shirtOfDay.current.trend_entity} className="shirt-image" />
-                    </button>
-                    <div className="shirt-copy">
-                      <p className="eyebrow">Current generation</p>
-                      <h3>{shirtOfDay.current.trend_entity}</h3>
-                      <p>{shirtOfDay.current.description}</p>
-                      <p className="stats-line">
-                        Тип: {shirtOfDay.current.trend_entity_type} · Score: {shirtOfDay.current.trend_score.toFixed(1)} · Рост:{" "}
-                        {formatGrowth(shirtOfDay.current.trend_growth_7d, false)}
-                      </p>
-                      <div className="card-actions">
-                        <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.current!.trend_entity)}`)}>Открыть тренд</button>
-                        <button onClick={() => setBriefPrompt(shirtOfDay.current!.brief_prompt)}>Открыть бриф</button>
-                      </div>
-                    </div>
-                  </article>
-                  <div className="section-head">
-                    <div>
-                      <p className="eyebrow">Previous 20</p>
-                      <h2>История генераций</h2>
-                    </div>
+              {shirtOfDay ? (
+                <article className="shirt-brief">
+                  <p className="eyebrow">Current top trend</p>
+                  <h3>{shirtOfDay.trend_entity}</h3>
+                  <p className="stats-line">
+                    Тип: {shirtOfDay.trend_entity_type} · Score: {shirtOfDay.trend_score.toFixed(1)} · Рост:{" "}
+                    {formatGrowth(shirtOfDay.trend_growth_7d, false)}
+                  </p>
+                  <div className="card-actions">
+                    <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.trend_entity)}`)}>Открыть тренд</button>
                   </div>
-                  <div className="shirt-history-table">
-                    <div className="shirt-history-head">Дата, время</div>
-                    <div className="shirt-history-head">Превью</div>
-                    <div className="shirt-history-head">Краткое описание</div>
-                    <div className="shirt-history-head">Тренд</div>
-                    {shirtOfDay.history.map((item) => (
-                      <article key={item.id} className="shirt-history-row">
-                        <div className="shirt-history-cell">
-                          <p className="post-meta">{formatDate(item.created_at)}</p>
-                        </div>
-                        <div className="shirt-history-cell">
-                          <button className="image-button image-button-small" onClick={() => setActiveImageUrl(item.image_url)}>
-                            <img src={item.image_url} alt={item.trend_entity} className="shirt-thumb" />
-                          </button>
-                        </div>
-                        <div className="shirt-history-cell">
-                          <p>{item.description}</p>
-                        </div>
-                        <div className="shirt-history-cell shirt-history-actions">
-                          <button onClick={() => navigate(`/app/trends/${encodeURIComponent(item.trend_entity)}`)}>{item.trend_entity}</button>
-                          <button onClick={() => setBriefPrompt(item.brief_prompt)}>Бриф</button>
-                        </div>
-                      </article>
-                    ))}
+                  <div className="brief-block">
+                    <p className="eyebrow">Brief for print</p>
+                    <pre>{shirtOfDay.brief_prompt}</pre>
                   </div>
-                </>
+                </article>
               ) : (
                 <div className="detail-box">
-                  <p>Генераций пока нет. После сбора данных будет создана первая «Футболка дня».</p>
+                  <p>Недостаточно данных. Сначала соберите посты, затем здесь появятся самый хайповый тренд и бриф.</p>
                 </div>
               )}
             </>
@@ -662,18 +617,6 @@ function App() {
               <button onClick={() => setBriefPrompt(null)}>Закрыть</button>
             </div>
             <pre>{briefPrompt}</pre>
-          </div>
-        </div>
-      ) : null}
-
-      {activeImageUrl ? (
-        <div className="modal-backdrop" onClick={() => setActiveImageUrl(null)}>
-          <div className="modal modal-image" onClick={(e) => e.stopPropagation()}>
-            <div className="section-head">
-              <h2>Полный размер</h2>
-              <button onClick={() => setActiveImageUrl(null)}>Закрыть</button>
-            </div>
-            <img src={activeImageUrl} alt="Shirt design full size" className="shirt-full" />
           </div>
         </div>
       ) : null}
