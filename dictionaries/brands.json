@@ -1,0 +1,8 @@
+[
+  { "term": "Balenciaga", "normalized": "balenciaga", "type": "brand" },
+  { "term": "Supreme", "normalized": "supreme", "type": "brand" },
+  { "term": "Vetements", "normalized": "vetements", "type": "brand" },
+  { "term": "Nike", "normalized": "nike", "type": "brand" },
+  { "term": "Adidas", "normalized": "adidas", "type": "brand" }
+]
+

@@ -1,0 +1,15 @@
+services:
+  backend:
+    ports:
+      - "127.0.0.1:8015:8000"
+
+  frontend:
+    build:
+      args:
+        VITE_API_BASE: /api
+        VITE_APP_BASE: /app/
+
+  nginx:
+    ports:
+      - "127.0.0.1:3015:80"
+

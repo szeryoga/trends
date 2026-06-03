@@ -1,0 +1,8 @@
+[
+  { "term": "Питер", "normalized": "Санкт-Петербург", "type": "location" },
+  { "term": "Васильевский остров", "normalized": "Васильевский остров", "type": "spb_place" },
+  { "term": "Петроградка", "normalized": "Петроградская сторона", "type": "spb_place" },
+  { "term": "Невский", "normalized": "Невский проспект", "type": "spb_place" },
+  { "term": "Севкабель", "normalized": "Севкабель Порт", "type": "spb_place" }
+]
+

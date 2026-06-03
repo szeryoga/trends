@@ -1,0 +1,8 @@
+[
+  { "term": "дождь", "normalized": "питерский дождь", "type": "local_theme" },
+  { "term": "белые ночи", "normalized": "белые ночи", "type": "local_theme" },
+  { "term": "парадная", "normalized": "петербургская парадная", "type": "local_theme" },
+  { "term": "шаверма", "normalized": "петербургская шаверма", "type": "local_theme" },
+  { "term": "развод мостов", "normalized": "развод мостов", "type": "local_theme" }
+]
+

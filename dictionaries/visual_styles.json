@@ -1,0 +1,8 @@
+[
+  { "term": "Y2K", "normalized": "y2k", "type": "visual_style" },
+  { "term": "киберпанк", "normalized": "киберпанк", "type": "visual_style" },
+  { "term": "лоуфай", "normalized": "лоуфай", "type": "visual_style" },
+  { "term": "ретро ПК", "normalized": "ретро пк", "type": "visual_style" },
+  { "term": "глитч", "normalized": "глитч", "type": "visual_style" }
+]
+

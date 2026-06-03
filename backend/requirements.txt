@@ -1,0 +1,15 @@
+fastapi==0.115.2
+uvicorn[standard]==0.32.0
+gunicorn==23.0.0
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3
+alembic==1.13.3
+pydantic==2.9.2
+pydantic-settings==2.6.0
+python-dotenv==1.0.1
+pandas==2.2.3
+natasha==1.6.0
+gliner==0.2.16
+telethon==1.36.0
+apscheduler==3.10.4
+

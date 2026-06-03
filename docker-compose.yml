@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME}
+      DEBUG: ${DEBUG}
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      APP_BASE_PATH: ${APP_BASE_PATH}
+      API_BASE_PATH: ${API_BASE_PATH}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME}
+      DEFAULT_POSTS_LIMIT: ${DEFAULT_POSTS_LIMIT}
+      GLINER_MODEL: ${GLINER_MODEL}
+      SCHEDULE_ENABLED: ${SCHEDULE_ENABLED}
+      SCHEDULE_HOUR_UTC: ${SCHEDULE_HOUR_UTC}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT}
+    command: >
+      sh -c "alembic upgrade head && gunicorn app.main:app
+      -k uvicorn.workers.UvicornWorker
+      -w ${GUNICORN_WORKERS}
+      --timeout ${GUNICORN_TIMEOUT}
+      -b 0.0.0.0:8000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: ${API_BASE_PATH}
+        VITE_APP_BASE: ${APP_BASE_PATH}/
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ./nginx
+    profiles: ["local-gateway"]
+    restart: unless-stopped
+    environment:
+      APP_BASE_PATH: ${APP_BASE_PATH}
+      API_BASE_PATH: ${API_BASE_PATH}
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+
