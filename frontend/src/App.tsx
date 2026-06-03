@@ -330,6 +330,7 @@ function App() {
   const categories = Array.from(new Set((bootstrap?.channels ?? []).map((item) => item.category))).sort();
   const entityTypes = Array.from(new Set(trends.map((item) => item.entity_type))).sort();
   const currentShirtBrief = shirtOfDay?.current ?? null;
+  const shirtHistory = shirtOfDay?.history ?? [];
 
   return (
     <div className="shell">
@@ -455,7 +456,7 @@ function App() {
                   <div className="brief-history-head">Дата/время</div>
                   <div className="brief-history-head">Тренд</div>
                   <div className="brief-history-head">Краткое описание</div>
-                  {shirtOfDay.history.map((item) => (
+                  {shirtHistory.map((item) => (
                     <button key={item.id} className="brief-history-row" onClick={() => setBriefPrompt(item.brief_prompt)}>
                       <span className="brief-history-cell">{formatDate(item.created_at)}</span>
                       <span className="brief-history-cell brief-history-trend">{item.trend_entity}</span>
