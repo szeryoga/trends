@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.models import Channel
 from app.schemas.channel import ChannelCreate
-from app.services.telegram import resolve_channel_sync
+from app.services.trends_telegram_client import telegram_client
 
 
 def normalize_channel_identifier(identifier: str) -> str:
@@ -21,7 +21,7 @@ def create_channel(db: Session, payload: ChannelCreate) -> Channel:
     existing = db.scalar(select(Channel).where((Channel.username == identifier) | (Channel.url == f"https://t.me/{identifier}")))
     if existing:
         return existing
-    resolved = resolve_channel_sync(identifier)
+    resolved = telegram_client.resolve_channel(identifier)
     channel = Channel(
         title=resolved.title,
         username=resolved.username or identifier,

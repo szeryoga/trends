@@ -89,3 +89,16 @@ class CollectionSettings(AuditMixin, Base):
     schedule_hour_utc: Mapped[int] = mapped_column(Integer, default=6)
     last_collected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+
+class ShirtDesign(TimestampMixin, Base):
+    __tablename__ = "shirt_designs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    trend_entity: Mapped[str] = mapped_column(String(255), index=True)
+    trend_entity_type: Mapped[str] = mapped_column(String(120))
+    trend_score: Mapped[float] = mapped_column(Float)
+    trend_growth_7d: Mapped[float | None] = mapped_column(Float, nullable=True)
+    brief_prompt: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
+    image_s3_key: Mapped[str] = mapped_column(String(500))
+    image_url: Mapped[str] = mapped_column(String(1000))

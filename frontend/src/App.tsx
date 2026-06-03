@@ -95,11 +95,29 @@ type CollectionResult = {
   warnings: string[];
 };
 
+type ShirtDesign = {
+  id: number;
+  trend_entity: string;
+  trend_entity_type: string;
+  trend_score: number;
+  trend_growth_7d: number | null;
+  brief_prompt: string;
+  description: string;
+  image_url: string;
+  created_at: string;
+};
+
+type ShirtOfDay = {
+  current: ShirtDesign | null;
+  history: ShirtDesign[];
+};
+
 type Route =
   | { name: "home" }
   | { name: "posts" }
   | { name: "channels" }
   | { name: "settings" }
+  | { name: "shirt-of-day" }
   | { name: "trend"; entity: string };
 
 const API_BASE = import.meta.env.VITE_API_BASE || "/api";
@@ -130,6 +148,7 @@ function parseRoute(pathname: string): Route {
   if (clean.endsWith("/posts")) return { name: "posts" };
   if (clean.endsWith("/channels")) return { name: "channels" };
   if (clean.endsWith("/settings")) return { name: "settings" };
+  if (clean.endsWith("/shirt-of-day")) return { name: "shirt-of-day" };
   const trendMatch = clean.match(/\/trends\/(.+)$/);
   if (trendMatch) return { name: "trend", entity: decodeURIComponent(trendMatch[1]) };
   return { name: "home" };
@@ -157,6 +176,7 @@ function App() {
   const [trendDetail, setTrendDetail] = useState<TrendDetail | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [trends, setTrends] = useState<Trend[]>([]);
+  const [shirtOfDay, setShirtOfDay] = useState<ShirtOfDay | null>(null);
   const [channelIdentifier, setChannelIdentifier] = useState("");
   const [channelCategory, setChannelCategory] = useState("general");
   const [postsLimit, setPostsLimit] = useState("10");
@@ -167,6 +187,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [briefPrompt, setBriefPrompt] = useState<string | null>(null);
+  const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const onPopState = () => setRoute(parseRoute(window.location.pathname));
@@ -180,6 +201,11 @@ function App() {
     setSettings(data.settings);
     setTrends(data.top_trends);
     setPostsLimit(String(data.settings.default_posts_limit));
+  }
+
+  async function loadShirtOfDay() {
+    const data = await request<ShirtOfDay>("/public/shirt-of-day");
+    setShirtOfDay(data);
   }
 
   useEffect(() => {
@@ -201,6 +227,9 @@ function App() {
       request<Settings>("/public/settings")
         .then(setSettings)
         .catch((err) => setError(err.message));
+    }
+    if (route.name === "shirt-of-day") {
+      loadShirtOfDay().catch((err) => setError(err.message));
     }
   }, [route, entityFilter]);
 
@@ -230,6 +259,7 @@ function App() {
       }
       await loadBootstrap();
       await refreshTrends();
+      await loadShirtOfDay().catch(() => undefined);
       if (route.name === "posts") {
         setPosts(await request<Post[]>("/public/posts?limit=50"));
       }
@@ -309,6 +339,7 @@ function App() {
         </div>
         <nav className="nav">
           <button onClick={() => navigate("/app")}>Главная</button>
+          <button onClick={() => navigate("/app/shirt-of-day")}>Футболка дня</button>
           <button onClick={() => navigate("/app/posts")}>Посты</button>
           <button onClick={() => navigate("/app/channels")}>Каналы</button>
           <button onClick={() => navigate("/app/settings")}>Настройки</button>
@@ -323,7 +354,7 @@ function App() {
             <input value={postsLimit} onChange={(e) => setPostsLimit(e.target.value)} inputMode="numeric" />
           </label>
           <button className="primary" disabled={loading} onClick={handleCollect}>
-            {loading ? "Сбор..." : "Собрать посты"}
+            {loading ? "Сбор..." : "Собрать данные"}
           </button>
           <p className="meta">Последний запуск: {formatDate(settings?.last_collected_at ?? bootstrap?.settings.last_collected_at ?? null)}</p>
 
@@ -382,6 +413,74 @@ function App() {
                   </article>
                 ))}
               </div>
+            </>
+          )}
+
+          {route.name === "shirt-of-day" && (
+            <>
+              <div className="section-head">
+                <div>
+                  <p className="eyebrow">Shirt Of The Day</p>
+                  <h2>Футболка дня</h2>
+                </div>
+              </div>
+              {shirtOfDay?.current ? (
+                <>
+                  <article className="shirt-hero">
+                    <button className="image-button" onClick={() => setActiveImageUrl(shirtOfDay.current!.image_url)}>
+                      <img src={shirtOfDay.current.image_url} alt={shirtOfDay.current.trend_entity} className="shirt-image" />
+                    </button>
+                    <div className="shirt-copy">
+                      <p className="eyebrow">Current generation</p>
+                      <h3>{shirtOfDay.current.trend_entity}</h3>
+                      <p>{shirtOfDay.current.description}</p>
+                      <p className="stats-line">
+                        Тип: {shirtOfDay.current.trend_entity_type} · Score: {shirtOfDay.current.trend_score.toFixed(1)} · Рост:{" "}
+                        {formatGrowth(shirtOfDay.current.trend_growth_7d, false)}
+                      </p>
+                      <div className="card-actions">
+                        <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.current!.trend_entity)}`)}>Открыть тренд</button>
+                        <button onClick={() => setBriefPrompt(shirtOfDay.current!.brief_prompt)}>Открыть бриф</button>
+                      </div>
+                    </div>
+                  </article>
+                  <div className="section-head">
+                    <div>
+                      <p className="eyebrow">Previous 20</p>
+                      <h2>История генераций</h2>
+                    </div>
+                  </div>
+                  <div className="shirt-history-table">
+                    <div className="shirt-history-head">Дата, время</div>
+                    <div className="shirt-history-head">Превью</div>
+                    <div className="shirt-history-head">Краткое описание</div>
+                    <div className="shirt-history-head">Тренд</div>
+                    {shirtOfDay.history.map((item) => (
+                      <article key={item.id} className="shirt-history-row">
+                        <div className="shirt-history-cell">
+                          <p className="post-meta">{formatDate(item.created_at)}</p>
+                        </div>
+                        <div className="shirt-history-cell">
+                          <button className="image-button image-button-small" onClick={() => setActiveImageUrl(item.image_url)}>
+                            <img src={item.image_url} alt={item.trend_entity} className="shirt-thumb" />
+                          </button>
+                        </div>
+                        <div className="shirt-history-cell">
+                          <p>{item.description}</p>
+                        </div>
+                        <div className="shirt-history-cell shirt-history-actions">
+                          <button onClick={() => navigate(`/app/trends/${encodeURIComponent(item.trend_entity)}`)}>{item.trend_entity}</button>
+                          <button onClick={() => setBriefPrompt(item.brief_prompt)}>Бриф</button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="detail-box">
+                  <p>Генераций пока нет. После сбора данных будет создана первая «Футболка дня».</p>
+                </div>
+              )}
             </>
           )}
 
@@ -563,6 +662,18 @@ function App() {
               <button onClick={() => setBriefPrompt(null)}>Закрыть</button>
             </div>
             <pre>{briefPrompt}</pre>
+          </div>
+        </div>
+      ) : null}
+
+      {activeImageUrl ? (
+        <div className="modal-backdrop" onClick={() => setActiveImageUrl(null)}>
+          <div className="modal modal-image" onClick={(e) => e.stopPropagation()}>
+            <div className="section-head">
+              <h2>Полный размер</h2>
+              <button onClick={() => setActiveImageUrl(null)}>Закрыть</button>
+            </div>
+            <img src={activeImageUrl} alt="Shirt design full size" className="shirt-full" />
           </div>
         </div>
       ) : null}

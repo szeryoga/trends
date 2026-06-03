@@ -3,6 +3,10 @@ services:
     ports:
       - "127.0.0.1:8015:8000"
 
+  trends-telegram:
+    ports:
+      - "127.0.0.1:8016:8010"
+
   frontend:
     build:
       args:
@@ -12,4 +16,3 @@ services:
   nginx:
     ports:
       - "127.0.0.1:3015:80"
-

@@ -37,9 +37,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       APP_BASE_PATH: ${APP_BASE_PATH}
       API_BASE_PATH: ${API_BASE_PATH}
-      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
-      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
-      TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME}
+      TRENDS_TELEGRAM_BASE_URL: ${TRENDS_TELEGRAM_BASE_URL:-http://trends-telegram:8010}
       DEFAULT_POSTS_LIMIT: ${DEFAULT_POSTS_LIMIT}
       GLINER_MODEL: ${GLINER_MODEL}
       SCHEDULE_ENABLED: ${SCHEDULE_ENABLED}
@@ -57,6 +55,29 @@ services:
         [
           "CMD-SHELL",
           "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  trends-telegram:
+    build:
+      context: ./trends_telegram
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME:-trend_monitor}
+      TELEGRAM_SESSION_DIR: ${TELEGRAM_SESSION_DIR:-/data/telegram}
+    volumes:
+      - telegram_session_data:${TELEGRAM_SESSION_DIR:-/data/telegram}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health')\"",
         ]
       interval: 15s
       timeout: 5s
@@ -89,4 +110,4 @@ services:
 
 volumes:
   postgres_data:
-
+  telegram_session_data:
