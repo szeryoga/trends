@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import logging
+
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.session import SessionLocal
 from app.models.models import Channel, CollectionSettings
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_CHANNELS = [
     {"title": "Лентач", "username": "lentachold", "url": "https://t.me/lentachold", "category": "news"},
@@ -35,11 +40,16 @@ def seed_initial_data() -> None:
                 )
             )
         existing_urls = set(db.scalars(select(Channel.url)).all())
+        existing_usernames = set(db.scalars(select(Channel.username)).all())
         for item in DEFAULT_CHANNELS:
-            if item["url"] in existing_urls:
+            if item["url"] in existing_urls or item["username"] in existing_usernames:
                 continue
             db.add(Channel(**item, is_active=True))
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError as exc:
+            db.rollback()
+            # Startup runs in multiple gunicorn workers. Duplicate seed inserts are benign.
+            logger.info("Skipping duplicate seed data during concurrent startup: %s", exc)
     finally:
         db.close()
-

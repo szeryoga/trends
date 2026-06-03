@@ -12,4 +12,3 @@ natasha==1.6.0
 gliner==0.2.16
 telethon==1.36.0
 apscheduler==3.10.4
-
