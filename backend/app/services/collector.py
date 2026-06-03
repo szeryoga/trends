@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.models import Channel, CollectionSettings, Entity, Post
 from app.services.analytics import recompute_daily_stats
 from app.services.entity_extractor import get_entity_extractor
+from app.services.shirt_of_day import create_shirt_brief_history_entry
 from app.services.trends_telegram_client import telegram_client
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,13 @@ def collect_posts(db: Session, limit: int) -> CollectionSummary:
     if settings:
         settings.last_collected_at = datetime.now(timezone.utc)
         db.commit()
+    try:
+        create_shirt_brief_history_entry(db)
+    except LookupError:
+        logger.info("Skipping shirt brief history because no trends are available")
+    except Exception as exc:
+        logger.exception("Failed to create shirt brief history entry")
+        warnings.append(f"shirt_of_day: {exc}")
     finished_at = datetime.now(timezone.utc)
     return CollectionSummary(
         collected_posts=collected_posts,

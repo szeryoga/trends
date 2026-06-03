@@ -96,12 +96,26 @@ type CollectionResult = {
 };
 
 type ShirtOfDay = {
-  trend_entity: string;
-  trend_entity_type: string;
-  trend_score: number;
-  trend_growth_7d: number | null;
-  brief_prompt: string;
-  trend_url: string;
+  current: {
+    id: number;
+    created_at: string;
+    trend_entity: string;
+    trend_entity_type: string;
+    trend_score: number;
+    trend_growth_7d: number | null;
+    description: string;
+    brief_prompt: string;
+  } | null;
+  history: Array<{
+    id: number;
+    created_at: string;
+    trend_entity: string;
+    trend_entity_type: string;
+    trend_score: number;
+    trend_growth_7d: number | null;
+    description: string;
+    brief_prompt: string;
+  }>;
 };
 
 type Route =
@@ -412,28 +426,46 @@ function App() {
               <div className="section-head">
                 <div>
                   <p className="eyebrow">Shirt Of The Day</p>
-                  <h2>Футболка дня</h2>
+                  <h2>История брифов для печати</h2>
                 </div>
               </div>
-              {shirtOfDay ? (
+              {shirtOfDay?.current ? (
+                <>
                 <article className="shirt-brief">
                   <p className="eyebrow">Current top trend</p>
-                  <h3>{shirtOfDay.trend_entity}</h3>
+                  <h3>{shirtOfDay.current.trend_entity}</h3>
                   <p className="stats-line">
-                    Тип: {shirtOfDay.trend_entity_type} · Score: {shirtOfDay.trend_score.toFixed(1)} · Рост:{" "}
-                    {formatGrowth(shirtOfDay.trend_growth_7d, false)}
+                    Тип: {shirtOfDay.current.trend_entity_type} · Score: {shirtOfDay.current.trend_score.toFixed(1)} · Рост:{" "}
+                    {formatGrowth(shirtOfDay.current.trend_growth_7d, false)}
                   </p>
+                  <p>{shirtOfDay.current.description}</p>
                   <div className="card-actions">
-                    <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.trend_entity)}`)}>Открыть тренд</button>
-                  </div>
-                  <div className="brief-block">
-                    <p className="eyebrow">Brief for print</p>
-                    <pre>{shirtOfDay.brief_prompt}</pre>
+                    <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.current.trend_entity)}`)}>Открыть тренд</button>
+                    <button onClick={() => setBriefPrompt(shirtOfDay.current!.brief_prompt)}>Открыть бриф</button>
                   </div>
                 </article>
+                <div className="section-head">
+                  <div>
+                    <p className="eyebrow">Last 20 entries</p>
+                    <h2>История брифов</h2>
+                  </div>
+                </div>
+                <div className="brief-history-table">
+                  <div className="brief-history-head">Дата/время</div>
+                  <div className="brief-history-head">Тренд</div>
+                  <div className="brief-history-head">Краткое описание</div>
+                  {shirtOfDay.history.map((item) => (
+                    <button key={item.id} className="brief-history-row" onClick={() => setBriefPrompt(item.brief_prompt)}>
+                      <span className="brief-history-cell">{formatDate(item.created_at)}</span>
+                      <span className="brief-history-cell brief-history-trend">{item.trend_entity}</span>
+                      <span className="brief-history-cell">{item.description}</span>
+                    </button>
+                  ))}
+                </div>
+                </>
               ) : (
                 <div className="detail-box">
-                  <p>Недостаточно данных. Сначала соберите посты, затем здесь появятся самый хайповый тренд и бриф.</p>
+                  <p>Недостаточно данных. Сначала соберите посты, затем здесь появится история автоматически созданных брифов.</p>
                 </div>
               )}
             </>
