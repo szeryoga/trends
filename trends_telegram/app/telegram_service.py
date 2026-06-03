@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -41,6 +42,9 @@ class TelegramService:
             self.settings.telegram_api_id,
             self.settings.telegram_api_hash,
         )
+
+    def make_client(self) -> TelegramClient:
+        return self.create_client()
 
     async def is_authorized(self) -> bool:
         if not self.is_configured():
@@ -100,3 +104,9 @@ class TelegramService:
 
 telegram_service = TelegramService()
 
+def resolve_channel_sync(identifier: str) -> TelegramChannelInfo:
+    return asyncio.run(telegram_service.resolve_channel(identifier))
+
+
+def fetch_recent_posts_sync(identifier: str, limit: int) -> list[TelegramPostPayload]:
+    return asyncio.run(telegram_service.fetch_recent_posts(identifier, limit))

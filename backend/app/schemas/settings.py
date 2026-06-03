@@ -1,9 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SettingsRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     default_posts_limit: int = Field(ge=1, le=100)
     schedule_enabled: bool
     schedule_hour_utc: int = Field(ge=0, le=23)
@@ -14,4 +16,3 @@ class SettingsUpdate(BaseModel):
     default_posts_limit: int = Field(ge=1, le=100)
     schedule_enabled: bool
     schedule_hour_utc: int = Field(ge=0, le=23)
-

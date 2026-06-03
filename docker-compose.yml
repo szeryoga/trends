@@ -59,6 +59,13 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      default:
+        priority: 100
+      gateway:
+        priority: 0
+        aliases:
+          - trends-backend
 
   trends-telegram:
     build:
@@ -93,6 +100,13 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      default:
+        priority: 100
+      gateway:
+        priority: 0
+        aliases:
+          - trends-frontend
 
   nginx:
     build:
@@ -111,3 +125,8 @@ services:
 volumes:
   postgres_data:
   telegram_session_data:
+
+networks:
+  gateway:
+    name: ${GATEWAY_NETWORK:-gateway-net}
+    external: true
