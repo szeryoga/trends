@@ -329,6 +329,7 @@ function App() {
 
   const categories = Array.from(new Set((bootstrap?.channels ?? []).map((item) => item.category))).sort();
   const entityTypes = Array.from(new Set(trends.map((item) => item.entity_type))).sort();
+  const currentShirtBrief = shirtOfDay?.current ?? null;
 
   return (
     <div className="shell">
@@ -429,19 +430,19 @@ function App() {
                   <h2>История брифов для печати</h2>
                 </div>
               </div>
-              {shirtOfDay?.current ? (
+              {currentShirtBrief ? (
                 <>
                 <article className="shirt-brief">
                   <p className="eyebrow">Current top trend</p>
-                  <h3>{shirtOfDay.current.trend_entity}</h3>
+                  <h3>{currentShirtBrief.trend_entity}</h3>
                   <p className="stats-line">
-                    Тип: {shirtOfDay.current.trend_entity_type} · Score: {shirtOfDay.current.trend_score.toFixed(1)} · Рост:{" "}
-                    {formatGrowth(shirtOfDay.current.trend_growth_7d, false)}
+                    Тип: {currentShirtBrief.trend_entity_type} · Score: {currentShirtBrief.trend_score.toFixed(1)} · Рост:{" "}
+                    {formatGrowth(currentShirtBrief.trend_growth_7d, false)}
                   </p>
-                  <p>{shirtOfDay.current.description}</p>
+                  <p>{currentShirtBrief.description}</p>
                   <div className="card-actions">
-                    <button onClick={() => navigate(`/app/trends/${encodeURIComponent(shirtOfDay.current.trend_entity)}`)}>Открыть тренд</button>
-                    <button onClick={() => setBriefPrompt(shirtOfDay.current!.brief_prompt)}>Открыть бриф</button>
+                    <button onClick={() => navigate(`/app/trends/${encodeURIComponent(currentShirtBrief.trend_entity)}`)}>Открыть тренд</button>
+                    <button onClick={() => setBriefPrompt(currentShirtBrief.brief_prompt)}>Открыть бриф</button>
                   </div>
                 </article>
                 <div className="section-head">
